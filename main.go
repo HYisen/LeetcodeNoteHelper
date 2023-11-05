@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"leetcodeNoteHelper/date"
+	"leetcodeNoteHelper/diary"
 	"leetcodeNoteHelper/note"
 	"log"
 	"os"
@@ -23,6 +24,6 @@ func Handle(d date.Date) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(records)
+	fmt.Println(diary.Digests(records))
 	return nil
 }
