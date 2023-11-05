@@ -35,9 +35,12 @@ func NewRecord(lines []string, d date.Date) (*Record, error) {
 		return ret, nil
 	}
 
-	end, err := findEnd(lines[2:], d)
+	begin, end, err := findPair(lines[2:], d)
 	if err != nil {
 		return nil, err
+	}
+	if begin != (time.Time{}) {
+		ret.Begin = begin
 	}
 	ret.End = end
 	return ret, nil
@@ -93,21 +96,27 @@ func parseFirstContentLine(s string, d date.Date) (partial *Record, err error) {
 	}, nil
 }
 
-func findEnd(rest []string, d date.Date) (time.Time, error) {
-	var end time.Time
+// findPair tries its best to find the pair, begin may be zero as it's optional in content.
+func findPair(rest []string, d date.Date) (begin, end time.Time, err error) {
 	for _, line := range rest {
 		parts := strings.Split(line, " ")
 		if len(parts) == 0 {
 			continue
 		}
-		if t, err := parseTime(parts[0], d); err == nil {
-			end = t
+		parts = append(parts, "")
+		one, oneErr := parseTime(parts[0], d)
+		two, twoErr := parseTime(parts[1], d)
+		if twoErr == nil && oneErr == nil {
+			begin = one
+			end = two
+		} else if twoErr != nil && oneErr == nil {
+			end = one
 		}
 	}
 	if end == (time.Time{}) {
-		return time.Time{}, fmt.Errorf("failed to find end in %v", rest)
+		return time.Time{}, time.Time{}, fmt.Errorf("failed to find end in %v", rest)
 	}
-	return end, nil
+	return begin, end, nil
 }
 
 func parseTime(s string, d date.Date) (time.Time, error) {
