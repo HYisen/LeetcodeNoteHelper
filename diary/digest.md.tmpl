@@ -2,4 +2,4 @@
 
 {{.Difficulty.String}} {{.ProblemCount}}
 
-{{ range .Problems }}    {{.ID}}{{ if not .Simple }}[C]{{ end }} {{.CostMinutes}}min{{ end }}
+{{ range .Problems }}    {{.String}}{{ end }}
