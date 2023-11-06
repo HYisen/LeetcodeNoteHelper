@@ -23,3 +23,17 @@ func parseDifficulty(s string) (Difficulty, error) {
 		return Unknown, fmt.Errorf("unknown difficulty string %s", s)
 	}
 }
+
+func (d Difficulty) String() string {
+	switch d {
+	case Unknown:
+		return "Unknown"
+	case Easy:
+		return "Easy"
+	case Medium:
+		return "Medium"
+	case Hard:
+		return "Hard"
+	}
+	panic(fmt.Errorf("unimplemented on Difficuly %d", d))
+}

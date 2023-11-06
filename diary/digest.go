@@ -5,6 +5,7 @@ import (
 	"leetcodeNoteHelper/note"
 	"strconv"
 	"strings"
+	"text/template"
 )
 
 func NewProblem(r note.Record) Problem {
@@ -31,24 +32,43 @@ func (p Problem) String() string {
 	return sb.String()
 }
 
+type Blob struct {
+	Difficulty         note.Difficulty
+	ProblemCount       int
+	TotalCostMinutes   int
+	AverageCostMinutes int
+	Problems           []Problem
+}
+
+var tmpl = template.Must(template.ParseFiles("diary/digest.md.tmpl"))
+
 func Digests(records []note.Record) string {
 	difficultiesToProblems := make(map[note.Difficulty][]Problem)
 	for _, r := range records {
 		difficultiesToProblems[r.Difficulty] = append(difficultiesToProblems[r.Difficulty], NewProblem(r))
 	}
 
-	var ret []string
-	ret = append(ret, fmt.Sprintf("Easy %d\n", len(difficultiesToProblems[note.Easy])))
 	var sb strings.Builder
-	for _, p := range difficultiesToProblems[note.Easy] {
-		sb.WriteString(fmt.Sprintf("\t%s", p.String()))
+	for _, difficulty := range []note.Difficulty{note.Easy, note.Medium, note.Hard} {
+		problems := difficultiesToProblems[difficulty]
+		if len(problems) == 0 {
+			continue
+		}
+		var totalCostMinutes int
+		for _, problem := range problems {
+			totalCostMinutes += problem.CostMinutes
+		}
+		b := Blob{
+			Difficulty:         difficulty,
+			ProblemCount:       len(problems),
+			TotalCostMinutes:   totalCostMinutes,
+			AverageCostMinutes: totalCostMinutes / len(problems),
+			Problems:           problems,
+		}
+
+		if err := tmpl.Execute(&sb, b); err != nil {
+			panic(err)
+		}
 	}
-	ret = append(ret, sb.String())
-	ret = append(ret, fmt.Sprintf("Medium %d\n", len(difficultiesToProblems[note.Medium])))
-	sb.Reset()
-	for _, p := range difficultiesToProblems[note.Medium] {
-		sb.WriteString(fmt.Sprintf("\t%s", p.String()))
-	}
-	ret = append(ret, sb.String())
-	return strings.Join(ret, "\n")
+	return sb.String()
 }
