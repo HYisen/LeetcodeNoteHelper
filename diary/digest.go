@@ -1,6 +1,7 @@
 package diary
 
 import (
+	_ "embed"
 	"fmt"
 	"leetcodeNoteHelper/note"
 	"strconv"
@@ -39,7 +40,9 @@ type Blob struct {
 	Problems         []Problem
 }
 
-var tmpl = template.Must(template.ParseFiles("diary/digest.md.tmpl"))
+//go:embed digest.md.tmpl
+var digestTemplateText string
+var tmpl = template.Must(template.New("digest").Parse(digestTemplateText))
 
 func Digest(records []note.Record) string {
 	difficultiesToProblems := make(map[note.Difficulty][]Problem)
