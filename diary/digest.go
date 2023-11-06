@@ -41,7 +41,7 @@ type Blob struct {
 
 var tmpl = template.Must(template.ParseFiles("diary/digest.md.tmpl"))
 
-func Digests(records []note.Record) string {
+func Digest(records []note.Record) string {
 	difficultiesToProblems := make(map[note.Difficulty][]Problem)
 	for _, r := range records {
 		difficultiesToProblems[r.Difficulty] = append(difficultiesToProblems[r.Difficulty], NewProblem(r))
