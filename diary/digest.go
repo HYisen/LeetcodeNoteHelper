@@ -48,7 +48,7 @@ func Digest(records []note.Record) string {
 	}
 
 	var sb strings.Builder
-	sb.WriteString("#### leetcode digest\n\n")
+	sb.WriteString("## leetcode digest\n\n")
 	for _, difficulty := range []note.Difficulty{note.Easy, note.Medium, note.Hard} {
 		problems := difficultiesToProblems[difficulty]
 		if len(problems) == 0 {
