@@ -33,11 +33,10 @@ func (p Problem) String() string {
 }
 
 type Blob struct {
-	Difficulty         note.Difficulty
-	ProblemCount       int
-	TotalCostMinutes   int
-	AverageCostMinutes int
-	Problems           []Problem
+	Difficulty       note.Difficulty
+	ProblemCount     int
+	TotalCostMinutes int
+	Problems         []Problem
 }
 
 var tmpl = template.Must(template.ParseFiles("diary/digest.md.tmpl"))
@@ -49,6 +48,7 @@ func Digests(records []note.Record) string {
 	}
 
 	var sb strings.Builder
+	sb.WriteString("#### leetcode digest\n\n")
 	for _, difficulty := range []note.Difficulty{note.Easy, note.Medium, note.Hard} {
 		problems := difficultiesToProblems[difficulty]
 		if len(problems) == 0 {
@@ -59,11 +59,10 @@ func Digests(records []note.Record) string {
 			totalCostMinutes += problem.CostMinutes
 		}
 		b := Blob{
-			Difficulty:         difficulty,
-			ProblemCount:       len(problems),
-			TotalCostMinutes:   totalCostMinutes,
-			AverageCostMinutes: totalCostMinutes / len(problems),
-			Problems:           problems,
+			Difficulty:       difficulty,
+			ProblemCount:     len(problems),
+			TotalCostMinutes: totalCostMinutes,
+			Problems:         problems,
 		}
 
 		if err := tmpl.Execute(&sb, b); err != nil {
