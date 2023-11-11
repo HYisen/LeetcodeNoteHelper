@@ -39,11 +39,19 @@ func NewRecord(lines []string, d date.Date) (*Record, error) {
 	if err != nil {
 		return nil, err
 	}
+	begin = fixJustPastMidnight(begin)
 	if begin != (time.Time{}) {
 		ret.Begin = begin
 	}
 	ret.End = end
 	return ret, nil
+}
+
+func fixJustPastMidnight(t time.Time) time.Time {
+	if date.BelongToYesterday(t) {
+		t = t.AddDate(0, 0, 1)
+	}
+	return t
 }
 
 func parseHeaderLine(s string) (problemID int, err error) {
@@ -77,10 +85,12 @@ func parseFirstContentLine(s string, d date.Date) (partial *Record, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse begin %s: %v", parts[1], err)
 	}
+	begin = fixJustPastMidnight(begin)
 	if len(parts) >= 3 {
 		end, err := parseTime(parts[2], d)
 		// If not ok, may the following content would make it valid, so just silent ignore without return here.
 		if err == nil {
+			end = fixJustPastMidnight(end)
 			return &Record{
 				Difficulty: difficulty,
 				Simple:     true,
