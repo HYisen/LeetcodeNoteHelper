@@ -40,7 +40,6 @@ func NewRecord(lines []string, d date.Date) (*Record, error) {
 		return nil, err
 	}
 	if begin != (time.Time{}) {
-		begin = fixJustPastMidnight(begin)
 		ret.Begin = begin
 	}
 	ret.End = end
@@ -48,6 +47,10 @@ func NewRecord(lines []string, d date.Date) (*Record, error) {
 }
 
 func fixJustPastMidnight(t time.Time) time.Time {
+	// Skip zero value as it shall be an empty value.
+	if t == (time.Time{}) {
+		return time.Time{}
+	}
 	if date.BelongToYesterday(t) {
 		t = t.AddDate(0, 0, 1)
 	}
@@ -117,10 +120,10 @@ func findPair(rest []string, d date.Date) (begin, end time.Time, err error) {
 		one, oneErr := parseTime(parts[0], d)
 		two, twoErr := parseTime(parts[1], d)
 		if twoErr == nil && oneErr == nil {
-			begin = one
-			end = two
+			begin = fixJustPastMidnight(one)
+			end = fixJustPastMidnight(two)
 		} else if twoErr != nil && oneErr == nil {
-			end = one
+			end = fixJustPastMidnight(one)
 		}
 	}
 	if end == (time.Time{}) {
