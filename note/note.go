@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"leetcodeNoteHelper/date"
+	"strconv"
 	"strings"
 )
 
@@ -25,10 +26,11 @@ func dropHeadAndEmpty(lines []string) []string {
 }
 
 func ParseFile(data []byte, d date.Date) ([]Record, error) {
-	all, err := extractFieldByDate(data, d)
+	dayToLines, err := extract(data, d.Day)
 	if err != nil {
 		return nil, err
 	}
+	all := dayToLines[d.Day]
 
 	var ret []Record
 	var current []string
@@ -54,26 +56,52 @@ func ParseFile(data []byte, d date.Date) ([]Record, error) {
 	return ret, nil
 }
 
-func extractFieldByDate(data []byte, d date.Date) ([]string, error) {
+const markdownHeaderPrefix = "# "
+
+func isDayHeader(line string) (day int, ok bool) {
+	dayString, ok := strings.CutPrefix(line, markdownHeaderPrefix)
+	if !ok {
+		return 0, false
+	}
+	num, err := strconv.Atoi(dayString)
+	if err != nil {
+		return 0, false
+	}
+	if !betweenMonthDayRange(num) {
+		return 0, false
+	}
+	return num, true
+}
+
+func betweenMonthDayRange(num int) bool {
+	return num >= 1 && num <= 31
+}
+
+// extract scan data and output by section days, if optionalFilterDay not zero, dayToLines only has key on that day.
+func extract(data []byte, optionalFilterDay int) (dayToLines map[int][]string, err error) {
 	scanner := bufio.NewScanner(bytes.NewReader(data))
+	ret := make(map[int][]string)
 	var started bool
-	dayHeader := fmt.Sprintf("# %02d", d.Day)
-	var ret []string
+	var sectionDay int
 	for scanner.Scan() {
 		line := scanner.Text()
-		// fast skip to target date
+		if strings.HasPrefix(line, markdownHeaderPrefix) {
+			started = false
+		}
 		if !started {
-			if line == dayHeader {
-				started = true
-				ret = append(ret, line)
+			day, ok := isDayHeader(line)
+			if !ok {
+				continue
 			}
-			continue
+			if optionalFilterDay != 0 && optionalFilterDay != day {
+				continue
+			}
+			started = true
+			sectionDay = day
 		}
-		// break when meets next date
-		if strings.HasPrefix(line, "# ") {
-			break
+		if started {
+			ret[sectionDay] = append(ret[sectionDay], line)
 		}
-		ret = append(ret, line)
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err
