@@ -9,8 +9,8 @@ import (
 	"strings"
 )
 
-func FilePath(d date.Date) string {
-	name := fmt.Sprintf("%02d%02d", d.Year%100, d.Month)
+func FilePath(ym date.YearMonth) string {
+	name := fmt.Sprintf("%02d%02d", ym.Year%100, ym.Month)
 	return fmt.Sprintf("/Users/hyisen/Library/CloudStorage/OneDrive-Personal/Notes/diary/leetcode/%s.md", name)
 }
 

@@ -15,7 +15,7 @@ func NewDaily() *Daily {
 }
 
 func (d *Daily) Digest(now date.Date) (string, error) {
-	file, err := os.ReadFile(note.FilePath(now))
+	file, err := os.ReadFile(note.FilePath(now.YearMonth()))
 	if err != nil {
 		return "", err
 	}
