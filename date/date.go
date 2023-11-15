@@ -28,3 +28,33 @@ type Date struct {
 	Month time.Month
 	Day   int
 }
+
+func (d Date) Add(years int, months int, days int) Date {
+	old := time.Date(d.Year, d.Month, d.Day, 0, 0, 0, 0, time.Local)
+	neo := old.AddDate(years, months, days)
+	return Date{
+		Year:  neo.Year(),
+		Month: neo.Month(),
+		Day:   neo.Day(),
+	}
+}
+
+func (d Date) YearMonth() YearMonth {
+	return YearMonth{
+		Year:  d.Year,
+		Month: d.Month,
+	}
+}
+
+type YearMonth struct {
+	Year  int
+	Month time.Month
+}
+
+func (ym YearMonth) Date(day int) Date {
+	return Date{
+		Year:  ym.Year,
+		Month: ym.Month,
+		Day:   day,
+	}
+}

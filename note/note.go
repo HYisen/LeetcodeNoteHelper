@@ -25,14 +25,28 @@ func dropHeadAndEmpty(lines []string) []string {
 	return ret
 }
 
-func ParseFile(data []byte, d date.Date) ([]Record, error) {
-	dayToLines, err := extract(data, d.Day)
+// ParseFileWithFilter scans data and output Record s group by dayOfMonth.
+// If optionalFilterDay not zero, only that date's Record s would be return.
+func ParseFileWithFilter(data []byte, ym date.YearMonth, optionalFilterDay int) ([][]Record, error) {
+	dayToLines, err := extract(data, optionalFilterDay)
 	if err != nil {
 		return nil, err
 	}
-	all := dayToLines[d.Day]
 
-	var ret []Record
+	var ret [][]Record
+	for day, all := range dayToLines {
+		// previous extract function has filtered all key day here satisfies optionalFilterDay criteria.
+		records, err := parseLines(ym.Date(day), all)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, records)
+	}
+	return ret, nil
+}
+
+func parseLines(d date.Date, all []string) ([]Record, error) {
+	var records []Record
 	var current []string
 	all = dropHeadAndEmpty(all) // Skip first line as date header and drop empty lines in MarkDown.
 	for _, line := range all {
@@ -41,7 +55,7 @@ func ParseFile(data []byte, d date.Date) ([]Record, error) {
 			if err != nil {
 				return nil, fmt.Errorf("parse record %s: %v", current, err)
 			}
-			ret = append(ret, *r)
+			records = append(records, *r)
 			current = nil
 		}
 		current = append(current, line)
@@ -51,9 +65,22 @@ func ParseFile(data []byte, d date.Date) ([]Record, error) {
 		if err != nil {
 			return nil, fmt.Errorf("parse record %s: %v", current, err)
 		}
-		ret = append(ret, *r)
+		records = append(records, *r)
 	}
-	return ret, nil
+	return records, nil
+}
+
+func ParseFile(data []byte, d date.Date) ([]Record, error) {
+	whole, err := ParseFileWithFilter(data, d.YearMonth(), d.Day)
+	if err != nil {
+		return nil, err
+	}
+	// If no target date in data.
+	if len(whole) == 0 {
+		return nil, nil
+	}
+	// As d.Day is specified in ParseFileWithFilter, shall be impossible if len(whole) > 1.
+	return whole[0], err
 }
 
 const markdownHeaderPrefix = "# "
@@ -77,7 +104,7 @@ func betweenMonthDayRange(num int) bool {
 	return num >= 1 && num <= 31
 }
 
-// extract scan data and output by section days, if optionalFilterDay not zero, dayToLines only has key on that day.
+// extract scans data and output by section days, if optionalFilterDay not zero, dayToLines only has key on that day.
 func extract(data []byte, optionalFilterDay int) (dayToLines map[int][]string, err error) {
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 	ret := make(map[int][]string)
