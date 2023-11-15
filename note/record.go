@@ -39,8 +39,8 @@ func NewRecord(lines []string, d date.Date) (*Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	begin = fixJustPastMidnight(begin)
 	if begin != (time.Time{}) {
+		begin = fixJustPastMidnight(begin)
 		ret.Begin = begin
 	}
 	ret.End = end
